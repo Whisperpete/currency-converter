@@ -305,6 +305,14 @@
             text-align: center;
             margin-top: 10px;
         }
+        
+        .disclaimer {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 10px;
+            text-align: center;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -321,21 +329,14 @@
                 <form class="converter-form" id="converterForm">
                     <div class="input-group">
                         <label for="amount">Amount</label>
-                        <input type="number" id="amount" placeholder="Enter amount" min="0" step="0.01" required>
+                        <input type="number" id="amount" placeholder="Enter amount" min="0" step="0.01" required value="100">
                     </div>
                     
                     <div class="currency-row">
                         <div class="input-group">
                             <label for="fromCurrency">From Currency</label>
                             <select id="fromCurrency" required>
-                                <option value="USD">USD - US Dollar</option>
-                                <option value="EUR">EUR - Euro</option>
-                                <option value="GBP">GBP - British Pound</option>
-                                <option value="JPY">JPY - Japanese Yen</option>
-                                <option value="CAD">CAD - Canadian Dollar</option>
-                                <option value="AUD">AUD - Australian Dollar</option>
-                                <option value="CHF">CHF - Swiss Franc</option>
-                                <option value="CNY">CNY - Chinese Yuan</option>
+                                <!-- Currencies will be populated by JavaScript -->
                             </select>
                         </div>
                         
@@ -348,14 +349,7 @@
                         <div class="input-group">
                             <label for="toCurrency">To Currency</label>
                             <select id="toCurrency" required>
-                                <option value="EUR">EUR - Euro</option>
-                                <option value="USD">USD - US Dollar</option>
-                                <option value="GBP">GBP - British Pound</option>
-                                <option value="JPY">JPY - Japanese Yen</option>
-                                <option value="CAD">CAD - Canadian Dollar</option>
-                                <option value="AUD">AUD - Australian Dollar</option>
-                                <option value="CHF">CHF - Swiss Franc</option>
-                                <option value="CNY">CNY - Chinese Yuan</option>
+                                <!-- Currencies will be populated by JavaScript -->
                             </select>
                         </div>
                     </div>
@@ -373,6 +367,7 @@
                     <div id="convertedAmount" class="converted-amount"></div>
                     <div id="exchangeRate" class="exchange-rate"></div>
                     <div class="last-updated" id="lastUpdated"></div>
+                    <div class="disclaimer">Using free API with limited requests per day</div>
                 </div>
                 
                 <div class="error-message" id="errorMessage">
@@ -409,7 +404,7 @@
                 </div>
                 
                 <div class="api-info">
-                    <p><i class="fas fa-database"></i> This tool uses real-time exchange rates from a free public API (ExchangeRate-API). Rates are updated regularly throughout the day.</p>
+                    <p><i class="fas fa-database"></i> This tool uses free public APIs for exchange rates. For production use, consider obtaining your own API key from a currency exchange service.</p>
                 </div>
             </div>
         </div>
@@ -440,9 +435,55 @@
             const lastUpdated = document.getElementById('lastUpdated');
             const errorText = document.getElementById('errorText');
             
-            // API Configuration - Using ExchangeRate-API (free tier)
-            const API_KEY = 'c6b60c2db03ef95ac2a78652'; // Free public API key for demonstration
-            const BASE_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}/latest/`;
+            // Available currencies with names
+            const currencies = [
+                {code: 'USD', name: 'US Dollar', flag: '🇺🇸'},
+                {code: 'EUR', name: 'Euro', flag: '🇪🇺'},
+                {code: 'GBP', name: 'British Pound', flag: '🇬🇧'},
+                {code: 'JPY', name: 'Japanese Yen', flag: '🇯🇵'},
+                {code: 'CAD', name: 'Canadian Dollar', flag: '🇨🇦'},
+                {code: 'AUD', name: 'Australian Dollar', flag: '🇦🇺'},
+                {code: 'CHF', name: 'Swiss Franc', flag: '🇨🇭'},
+                {code: 'CNY', name: 'Chinese Yuan', flag: '🇨🇳'},
+                {code: 'INR', name: 'Indian Rupee', flag: '🇮🇳'},
+                {code: 'MXN', name: 'Mexican Peso', flag: '🇲🇽'},
+                {code: 'BRL', name: 'Brazilian Real', flag: '🇧🇷'},
+                {code: 'KRW', name: 'South Korean Won', flag: '🇰🇷'},
+                {code: 'RUB', name: 'Russian Ruble', flag: '🇷🇺'},
+                {code: 'ZAR', name: 'South African Rand', flag: '🇿🇦'},
+                {code: 'AED', name: 'UAE Dirham', flag: '🇦🇪'},
+                {code: 'SGD', name: 'Singapore Dollar', flag: '🇸🇬'},
+                {code: 'NZD', name: 'New Zealand Dollar', flag: '🇳🇿'},
+                {code: 'TRY', name: 'Turkish Lira', flag: '🇹🇷'},
+                {code: 'HKD', name: 'Hong Kong Dollar', flag: '🇭🇰'},
+                {code: 'SEK', name: 'Swedish Krona', flag: '🇸🇪'}
+            ];
+            
+            // Populate currency dropdowns
+            function populateCurrencyDropdowns() {
+                fromCurrencySelect.innerHTML = '';
+                toCurrencySelect.innerHTML = '';
+                
+                currencies.forEach(currency => {
+                    const option1 = document.createElement('option');
+                    option1.value = currency.code;
+                    option1.textContent = `${currency.flag} ${currency.code} - ${currency.name}`;
+                    
+                    const option2 = document.createElement('option');
+                    option2.value = currency.code;
+                    option2.textContent = `${currency.flag} ${currency.code} - ${currency.name}`;
+                    
+                    fromCurrencySelect.appendChild(option1);
+                    toCurrencySelect.appendChild(option2);
+                });
+                
+                // Set default values
+                fromCurrencySelect.value = 'USD';
+                toCurrencySelect.value = 'EUR';
+            }
+            
+            // Initialize dropdowns
+            populateCurrencyDropdowns();
             
             // Swap currencies when swap button is clicked
             swapButton.addEventListener('click', function() {
@@ -490,22 +531,50 @@
                 loader.style.display = 'block';
                 
                 try {
-                    // Fetch exchange rates from API
-                    const response = await fetch(`${BASE_URL}${fromCurrency}`);
+                    // Try multiple free APIs - start with Frankfurter API (no API key needed, CORS friendly)
+                    let rate;
+                    let apiUsed = "Frankfurter.app";
                     
-                    if (!response.ok) {
-                        throw new Error(`API Error: ${response.status}`);
+                    try {
+                        // Try Frankfurter API first
+                        const response = await fetch(`https://api.frankfurter.app/latest?from=${fromCurrency}&to=${toCurrency}`);
+                        
+                        if (!response.ok) {
+                            throw new Error(`Frankfurter API error: ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        rate = data.rates[toCurrency];
+                        
+                        // Update last updated time
+                        const updateDate = new Date();
+                        lastUpdated.textContent = `Rates updated: ${updateDate.toLocaleDateString()} ${updateDate.toLocaleTimeString()} (via ${apiUsed})`;
+                    } catch (frankfurterError) {
+                        console.log("Frankfurter API failed, trying alternative...");
+                        
+                        // Try ExchangeRate-API (free tier with CORS proxy)
+                        apiUsed = "ExchangeRate-API (via proxy)";
+                        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                        const exchangeRateUrl = `https://v6.exchangerate-api.com/v6/c6b60c2db03ef95ac2a78652/latest/${fromCurrency}`;
+                        
+                        const proxyResponse = await fetch(proxyUrl + encodeURIComponent(exchangeRateUrl));
+                        
+                        if (!proxyResponse.ok) {
+                            throw new Error(`ExchangeRate API error: ${proxyResponse.status}`);
+                        }
+                        
+                        const proxyData = await proxyResponse.json();
+                        
+                        if (proxyData.result !== 'success') {
+                            throw new Error(`ExchangeRate API: ${proxyData['error-type']}`);
+                        }
+                        
+                        rate = proxyData.conversion_rates[toCurrency];
+                        
+                        // Update last updated time
+                        const updateDate = new Date(proxyData.time_last_update_utc);
+                        lastUpdated.textContent = `Rates updated: ${updateDate.toLocaleDateString()} ${updateDate.toLocaleTimeString()} (via ${apiUsed})`;
                     }
-                    
-                    const data = await response.json();
-                    
-                    // Check if API returned success
-                    if (data.result !== 'success') {
-                        throw new Error(data['error-type'] || 'Failed to fetch exchange rates');
-                    }
-                    
-                    // Get the conversion rate
-                    const rate = data.conversion_rates[toCurrency];
                     
                     if (!rate) {
                         throw new Error(`Conversion rate for ${toCurrency} not available`);
@@ -534,10 +603,6 @@
                     convertedAmount.textContent = formatterTo.format(convertedValue);
                     exchangeRate.textContent = `1 ${fromCurrency} = ${rate.toFixed(6)} ${toCurrency}`;
                     
-                    // Show last updated time
-                    const updateDate = new Date(data.time_last_update_utc);
-                    lastUpdated.textContent = `Rates updated: ${updateDate.toLocaleDateString()} ${updateDate.toLocaleTimeString()}`;
-                    
                     // Show result and hide loader
                     loader.style.display = 'none';
                     resultDiv.style.display = 'block';
@@ -546,15 +611,65 @@
                     console.error('Conversion error:', error);
                     loader.style.display = 'none';
                     
-                    // Show appropriate error message
+                    // If all APIs fail, use fallback rates (stored rates for demonstration)
                     if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
-                        showError("Network error. Please check your internet connection and try again.");
-                    } else if (error.message.includes('API Error')) {
-                        showError("Unable to fetch exchange rates at the moment. Please try again later.");
+                        // Use fallback rates when API is unavailable
+                        useFallbackRates(amount, fromCurrency, toCurrency);
                     } else {
                         showError(error.message || "Conversion failed. Please try again.");
                     }
                 }
+            }
+            
+            // Fallback rates for when APIs are unavailable
+            function useFallbackRates(amount, fromCurrency, toCurrency) {
+                // Sample exchange rates (as of common values, not real-time)
+                const fallbackRates = {
+                    'USD': { 'EUR': 0.92, 'GBP': 0.79, 'JPY': 147.50, 'CAD': 1.36, 'AUD': 1.54, 'CHF': 0.88, 'CNY': 7.28, 'INR': 83.20 },
+                    'EUR': { 'USD': 1.09, 'GBP': 0.86, 'JPY': 160.50, 'CAD': 1.48, 'AUD': 1.67, 'CHF': 0.96, 'CNY': 7.92, 'INR': 90.50 },
+                    'GBP': { 'USD': 1.27, 'EUR': 1.16, 'JPY': 186.50, 'CAD': 1.72, 'AUD': 1.95, 'CHF': 1.11, 'CNY': 9.20, 'INR': 105.20 },
+                    'JPY': { 'USD': 0.0068, 'EUR': 0.0062, 'GBP': 0.0054, 'CAD': 0.0092, 'AUD': 0.0104, 'CHF': 0.0060, 'CNY': 0.049, 'INR': 0.56 }
+                };
+                
+                // Default rate if not in our fallback data
+                let rate = 1.0;
+                
+                // Try to get rate from fallback data
+                if (fallbackRates[fromCurrency] && fallbackRates[fromCurrency][toCurrency]) {
+                    rate = fallbackRates[fromCurrency][toCurrency];
+                } else if (fromCurrency === toCurrency) {
+                    rate = 1.0;
+                } else {
+                    // For other currencies, show an approximate conversion
+                    rate = 0.85; // Default approximation
+                    showError("Using approximate rates. Real-time rates unavailable.");
+                }
+                
+                // Calculate converted amount
+                const convertedValue = amount * rate;
+                
+                // Format numbers for display
+                const formatterFrom = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: fromCurrency
+                });
+                
+                const formatterTo = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: toCurrency,
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                
+                // Display results
+                originalAmount.textContent = `${formatterFrom.format(amount)} equals`;
+                convertedAmount.textContent = formatterTo.format(convertedValue);
+                exchangeRate.textContent = `1 ${fromCurrency} ≈ ${rate.toFixed(6)} ${toCurrency}`;
+                lastUpdated.textContent = `Using approximate rates (real-time rates unavailable)`;
+                
+                // Show result and hide loader
+                loader.style.display = 'none';
+                resultDiv.style.display = 'block';
             }
             
             // Helper functions
@@ -571,53 +686,9 @@
                 resultDiv.style.display = 'none';
             }
             
-            // Populate currency dropdowns with more options
-            const popularCurrencies = [
-                {code: 'USD', name: 'US Dollar'},
-                {code: 'EUR', name: 'Euro'},
-                {code: 'GBP', name: 'British Pound'},
-                {code: 'JPY', name: 'Japanese Yen'},
-                {code: 'CAD', name: 'Canadian Dollar'},
-                {code: 'AUD', name: 'Australian Dollar'},
-                {code: 'CHF', name: 'Swiss Franc'},
-                {code: 'CNY', name: 'Chinese Yuan'},
-                {code: 'INR', name: 'Indian Rupee'},
-                {code: 'MXN', name: 'Mexican Peso'},
-                {code: 'BRL', name: 'Brazilian Real'},
-                {code: 'KRW', name: 'South Korean Won'},
-                {code: 'RUB', name: 'Russian Ruble'},
-                {code: 'ZAR', name: 'South African Rand'},
-                {code: 'AED', name: 'UAE Dirham'},
-                {code: 'SGD', name: 'Singapore Dollar'},
-            ];
-            
-            // Function to populate dropdown
-            function populateCurrencyDropdown(selectElement, selectedValue) {
-                // Clear existing options
-                selectElement.innerHTML = '';
-                
-                // Add options
-                popularCurrencies.forEach(currency => {
-                    const option = document.createElement('option');
-                    option.value = currency.code;
-                    option.textContent = `${currency.code} - ${currency.name}`;
-                    selectElement.appendChild(option);
-                });
-                
-                // Set selected value
-                selectElement.value = selectedValue;
-            }
-            
-            // Populate both dropdowns
-            populateCurrencyDropdown(fromCurrencySelect, 'USD');
-            populateCurrencyDropdown(toCurrencySelect, 'EUR');
-            
             // Example conversion on page load
-            amountInput.value = '100';
             setTimeout(() => {
-                if (amountInput.value === '100') {
-                    convertCurrency();
-                }
+                convertCurrency();
             }, 500);
         });
     </script>
